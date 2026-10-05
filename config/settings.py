@@ -126,6 +126,15 @@ TELEGRAM_INIT_DATA_MAX_AGE = int(os.getenv("TELEGRAM_INIT_DATA_MAX_AGE", "86400"
 # Lets you open the web app in a normal browser during development. Never enable in production.
 TELEGRAM_DEV_AUTH = env_bool("TELEGRAM_DEV_AUTH", False) and DEBUG
 
+# Built React app to serve from Django (e.g. /home/<user>/shopping-app-frontend-dist). Empty disables it.
+FRONTEND_DIST = os.getenv("FRONTEND_DIST", "")
+
+# Behind the PythonAnywhere / nginx HTTPS proxy
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+if not DEBUG:
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+
 # Shop
 SHIPPING_FEE = os.getenv("SHIPPING_FEE", "4.99")
 
