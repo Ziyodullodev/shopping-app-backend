@@ -28,7 +28,7 @@ class Command(BaseCommand):
         ]
         failed = False
         for method, payload in steps:
-            res = call(method, **payload) or {}
+            res = call(method, retries=4, **payload) or {}
             ok = res.get("ok")
             failed |= not ok
             self.stdout.write(f"{method}: {'ok' if ok else res.get('description', 'no response')}")

@@ -78,3 +78,20 @@ class WebhookTests(TestCase):
         self.assertIn("/help", self.sent(post)["text"])
 
 
+
+
+@override_settings(TELEGRAM_BOT_TOKEN="123:SECRET")
+class ApiTests(TestCase):
+    @mock.patch("apps.bot.api.time.sleep")
+    @mock.patch("apps.bot.api.requests.post")
+    def test_retries_and_never_logs_token(self, post, sleep):
+        import requests
+
+        from apps.bot.api import call
+
+        post.side_effect = requests.ConnectionError("url: /bot123:SECRET/getMe proxy 503")
+        with self.assertLogs("apps.bot.api", "WARNING") as logs:
+            self.assertIsNone(call("getMe", retries=2))
+        self.assertEqual(post.call_count, 3)
+        self.assertNotIn("123:SECRET", "\n".join(logs.output))
+        self.assertIn("<token>", logs.output[0])
