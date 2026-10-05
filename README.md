@@ -8,6 +8,7 @@ Django REST API for the Shoer.lk Telegram Mini App. Frontend: [shopping-app-fron
 - Checkout that reserves stock in a transaction, order history and cancel.
 - Telegram bot messages to the customer and an admin chat on new orders and status changes.
 - Django admin for products, stock and orders.
+- Telegram bot over a webhook: `/start`, `/shop`, `/orders`, `/help` in Uzbek and English, with Mini App buttons.
 
 ## Run locally
 
@@ -62,6 +63,18 @@ All endpoints are under `/api/`. Send `Authorization: Bearer <access>` except wh
 | POST | `/orders/{id}/cancel/` | Cancel a `new` order and return stock |
 
 Checkout answers `409` when a size ran out and `400` when the cart is empty.
+
+## Telegram bot
+
+The bot runs on a webhook at `/api/telegram/webhook/`, so no extra process is needed.
+Telegram signs every call with `TELEGRAM_WEBHOOK_SECRET`; requests without it get `403`.
+
+```bash
+.venv/bin/python manage.py setup_bot
+```
+
+This registers the webhook, the command list (English and Uzbek) and the Mini App menu button.
+Run it again after changing `WEBAPP_URL` or the bot token.
 
 ## Production notes
 

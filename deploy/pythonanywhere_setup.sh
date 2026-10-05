@@ -50,6 +50,23 @@ PY
 else
   echo "kept existing .env"
 fi
+# Make sure a webhook secret exists (older .env files were created without it).
+"$VENV/bin/python" - "$BACKEND/.env" <<'PY'
+import secrets, sys
+from pathlib import Path
+env = Path(sys.argv[1])
+lines = env.read_text().splitlines()
+keys = {l.split("=", 1)[0]: i for i, l in enumerate(lines) if "=" in l and not l.startswith("#")}
+idx = keys.get("TELEGRAM_WEBHOOK_SECRET")
+if idx is None or not lines[idx].split("=", 1)[1].strip():
+    line = f"TELEGRAM_WEBHOOK_SECRET={secrets.token_urlsafe(32)}"
+    if idx is None:
+        lines.append(line)
+    else:
+        lines[idx] = line
+    env.write_text("\n".join(lines) + "\n")
+    print("generated TELEGRAM_WEBHOOK_SECRET")
+PY
 
 echo "==> Database and static files"
 cd "$BACKEND"
@@ -64,4 +81,11 @@ if [ -f "$WSGI" ] && ! grep -q "shopping-app-backend" "$WSGI"; then cp "$WSGI" "
 sed "s/^USERNAME = .*/USERNAME = \"${USERNAME}\"/" "$BACKEND/deploy/pythonanywhere_wsgi.py" > "$WSGI"
 
 "$VENV/bin/python" manage.py check --deploy --fail-level ERROR
+
+echo "==> Telegram bot"
+if grep -qE '^TELEGRAM_BOT_TOKEN=.+' "$BACKEND/.env"; then
+  "$VENV/bin/python" manage.py setup_bot || echo "setup_bot failed; reload the web app and run: $VENV/bin/python manage.py setup_bot"
+else
+  echo "TELEGRAM_BOT_TOKEN is empty, skipping bot setup"
+fi
 echo "==> Done. Set the Web tab paths and static mappings, then press Reload."

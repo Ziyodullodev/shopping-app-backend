@@ -120,7 +120,7 @@ class ShopFlowTests(TestCase):
         self.login(2)
         self.assertEqual(self.client.get("/api/cart/").data["count"], 0)
 
-    @mock.patch("apps.shop.notifications.requests.post")
+    @mock.patch("apps.bot.api.requests.post")
     def test_checkout_creates_order_and_reduces_stock(self, post):
         self.login()
         self.client.post("/api/cart/items/", {"product": "casual-brown", "size": 42, "quantity": 3}, format="json")

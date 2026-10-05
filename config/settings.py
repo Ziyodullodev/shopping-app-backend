@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     "apps.accounts",
     "apps.catalog",
     "apps.shop",
+    "apps.bot",
 ]
 
 MIDDLEWARE = [
@@ -125,6 +126,10 @@ TELEGRAM_ADMIN_CHAT_ID = os.getenv("TELEGRAM_ADMIN_CHAT_ID", "")
 TELEGRAM_INIT_DATA_MAX_AGE = int(os.getenv("TELEGRAM_INIT_DATA_MAX_AGE", "86400"))
 # Lets you open the web app in a normal browser during development. Never enable in production.
 TELEGRAM_DEV_AUTH = env_bool("TELEGRAM_DEV_AUTH", False) and DEBUG
+# Random string Telegram sends back in X-Telegram-Bot-Api-Secret-Token on every webhook call.
+TELEGRAM_WEBHOOK_SECRET = os.getenv("TELEGRAM_WEBHOOK_SECRET", "")
+# Public HTTPS address of the Mini App; also the base for the webhook URL.
+WEBAPP_URL = os.getenv("WEBAPP_URL") or (f"https://{ALLOWED_HOSTS[0]}/" if ALLOWED_HOSTS else "")
 
 # Built React app to serve from Django (e.g. /home/<user>/shopping-app-frontend-dist). Empty disables it.
 FRONTEND_DIST = os.getenv("FRONTEND_DIST", "")

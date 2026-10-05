@@ -1,27 +1,10 @@
 """Order notifications through the Telegram Bot API. Failures are logged and never break checkout."""
-import logging
 from html import escape
 
-import requests
 from django.conf import settings
 
-log = logging.getLogger(__name__)
-
-
-def _send(chat_id, text: str) -> None:
-    token = settings.TELEGRAM_BOT_TOKEN
-    if not token or not chat_id:
-        return
-    try:
-        resp = requests.post(
-            f"https://api.telegram.org/bot{token}/sendMessage",
-            json={"chat_id": chat_id, "text": text, "parse_mode": "HTML", "disable_web_page_preview": True},
-            timeout=5,
-        )
-        if not resp.ok:
-            log.warning("Telegram sendMessage failed (%s): %s", resp.status_code, resp.text[:200])
-    except requests.RequestException as exc:
-        log.warning("Telegram sendMessage error: %s", exc)
+from apps.bot.api import send_message as _send
+from apps.bot.api import webapp_keyboard
 
 
 def _items_text(order) -> str:
@@ -36,6 +19,7 @@ def notify_order_created(order) -> None:
         order.user.telegram_id,
         f"✅ <b>Order #{order.pk} received</b>\n\n{items}\n\n"
         f"Total: <b>${order.total:.2f}</b>\nWe will contact you at {escape(order.phone)} to confirm delivery.",
+        reply_markup=webapp_keyboard("📦 My orders", "orders"),
     )
     _send(
         settings.TELEGRAM_ADMIN_CHAT_ID,
@@ -50,4 +34,8 @@ def notify_order_created(order) -> None:
 
 
 def notify_status_changed(order) -> None:
-    _send(order.user.telegram_id, f"📦 Order #{order.pk} is now <b>{order.get_status_display()}</b>.")
+    _send(
+        order.user.telegram_id,
+        f"📦 Order #{order.pk} is now <b>{order.get_status_display()}</b>.",
+        reply_markup=webapp_keyboard("📦 My orders", "orders"),
+    )
